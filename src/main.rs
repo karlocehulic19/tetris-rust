@@ -26,19 +26,33 @@ struct Player {
 }
 
 impl Player {
-    fn place_ship(&mut self, row: usize, col: usize, len: usize, orientation: ShipOrientation) {
+    fn place_ship(
+        &mut self,
+        row: usize,
+        col: usize,
+        len: usize,
+        orientation: ShipOrientation,
+    ) -> Result<(), String> {
         match orientation {
             ShipOrientation::Horizontal => {
                 let end_col = col + len;
                 for c in col..end_col {
+                    if self.board[row][c] == 1 {
+                        return Err("Cell already occuppied".to_string());
+                    }
                     self.board[row][c] = 1;
                 }
+                Ok(())
             }
             ShipOrientation::Vertical => {
                 let end_row = col + len;
                 for r in row..end_row {
+                    if self.board[r][col] == 1 {
+                        return Err("Cell already occuppied".to_string());
+                    }
                     self.board[r][col] = 1;
                 }
+                Ok(())
             }
         }
     }

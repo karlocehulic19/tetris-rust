@@ -6,7 +6,7 @@ use ratatui::{
     buffer::Buffer,
     layout::Rect,
     style::Stylize,
-    text::{Line, Text, ToLine},
+    text::{Line, Text},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 fn main() -> io::Result<()> {
@@ -59,14 +59,15 @@ impl Widget for &App {
             .borders(Borders::ALL)
             .title(Line::from("Tetris").centered());
 
-        let horizontal_border_block = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
-        let vertical_border_block = Line::from("🟩                    🟩".white());
+        let horizontal_border = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
+        // one sqare is exectly two spaces
+        let vertical_border = Line::from("🟩                    🟩".white());
         let mut vector_box: Vec<Line<'_>> = Vec::new();
 
-        let mut horizontal_vector = vec![vertical_border_block; 10];
-        vector_box.push(horizontal_border_block.clone());
+        let mut horizontal_vector = vec![vertical_border; 10];
+        vector_box.push(horizontal_border.clone());
         vector_box.append(&mut horizontal_vector);
-        vector_box.push(horizontal_border_block.clone());
+        vector_box.push(horizontal_border.clone());
 
         let playing_box = Text::from(vector_box);
         Paragraph::new(playing_box)

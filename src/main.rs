@@ -1,8 +1,10 @@
 use ratatui::{
     DefaultTerminal, Frame,
+    buffer::Buffer,
+    layout::Rect,
     style::Stylize,
     text::{Line, Text, ToLine},
-    widgets::{Block, Borders},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
@@ -12,7 +14,7 @@ fn main() -> color_eyre::Result<()> {
 
 fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
     loop {
-        terminal.draw(render_playing_box)?;
+        terminal.draw(render)?;
         if crossterm::event::read()?.is_key_press() {
             break Ok(());
         }
@@ -23,10 +25,11 @@ fn render(frame: &mut Frame) {
     let b = Block::default()
         .borders(Borders::ALL)
         .title(Line::from("Tetris").centered());
-    frame.render_widget(b, frame.area());
+    let p = render_playing_box(b);
+    frame.render_widget(p, frame.area());
 }
 
-fn render_playing_box(frame: &mut Frame) {
+fn render_playing_box(block: Block) -> Paragraph<'_> {
     let horizontal_border_block = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
     let vertical_border_block = Line::from("🟩                    🟩".white());
     let mut vector_box: Vec<Line<'_>> = Vec::new();
@@ -37,5 +40,5 @@ fn render_playing_box(frame: &mut Frame) {
     vector_box.push(horizontal_border_block.clone());
 
     let playing_box = Text::from(vector_box);
-    frame.render_widget(playing_box.centered(), frame.area());
+    return Paragraph::new(playing_box).centered().block(block);
 }

@@ -62,7 +62,7 @@ impl Widget for &App {
         let horizontal_border = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
         // one sqare is exectly two spaces
         let vertical_border = Line::from("🟩                    🟩".white());
-        let mut vector_box: Vec<Line<'_>> = Vec::new();
+        let mut vector_box: Vec<Line<'_>> = vec![Line::from(""); 5];
 
         let mut horizontal_vector = vec![vertical_border; 10];
         vector_box.push(horizontal_border.clone());

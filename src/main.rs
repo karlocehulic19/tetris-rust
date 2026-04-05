@@ -1,4 +1,7 @@
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{
+    DefaultTerminal, Frame,
+    prelude::{Color, Span, Style},
+};
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     ratatui::run(app)?;
@@ -15,5 +18,7 @@ fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
 }
 
 fn render(frame: &mut Frame) {
-    frame.render_widget("hello world", frame.area());
+    let span = Span::styled("🟥🟥🟥🟥", Style::default().fg(Color::Red));
+
+    frame.render_widget(span, frame.area());
 }

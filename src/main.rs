@@ -1,4 +1,10 @@
-use std::io;
+use std::{
+    fmt::Debug,
+    io,
+    sync::{Arc, Mutex},
+    thread,
+    time::Duration,
+};
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
@@ -18,46 +24,64 @@ mod game;
 mod general;
 
 fn main() -> io::Result<()> {
-    ratatui::run(|terminal| App::default().run(terminal))
+    let mut board = Board::new();
+    let app = Arc::new(Mutex::new(App::default()));
+    let app_for_game = Arc::clone(&app);
+    thread::spawn(move || {
+        board.start_game(move |new_color_box| {
+            app_for_game.lock().unwrap().update_color_box(new_color_box)
+        })
+    });
+
+    ratatui::run(|terminal| App::run_fn(app.clone(), terminal))
 }
 
 #[derive(Debug, Default)]
 struct App {
     exit: bool,
     color_gird: ColorBox,
-    game_board: Board,
 }
 
 impl App {
-    pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
-            self.handle_events();
+    fn run_fn(app: Arc<Mutex<App>>, terminal: &mut DefaultTerminal) -> io::Result<()> {
+        loop {
+            {
+                let app = app.lock().unwrap();
+                if app.exit {
+                    return Ok(());
+                }
+                terminal.draw(|frame| app.draw(frame));
+            }
+
+            let tick = Duration::from_millis(16);
+            if event::poll(tick)? {
+                let event = event::read()?;
+                let mut app = app.lock().unwrap();
+                app.handle_event(event);
+            }
         }
-        Ok(())
     }
 
     fn draw(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
 
-    fn handle_events(&mut self) -> io::Result<()> {
-        match event::read()? {
+    fn handle_event(&mut self, event: Event) {
+        match event {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 self.handle_key_event(key_event)
             }
             _ => {}
         };
-        Ok(())
     }
 
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            KeyCode::Char('n') => {
-                self.game_board.next_move();
-                self.update_color_box();
-            }
+            // KeyCode::Char('n') => {
+            //     self.game_board.next_move();
+            //     self.update_color_box();
+            // }
             _ => {}
         }
     }
@@ -66,14 +90,14 @@ impl App {
         self.exit = true;
     }
 
-    fn update_color_box(&mut self) {
-        self.color_gird = self.game_board.blocks.clone();
+    fn update_color_box(&mut self, new_board: ColorBox) {
+        self.color_gird = new_board.clone()
     }
 
     fn get_border_lines<'a>(&self) -> Vec<Line<'a>> {
         let mut line_box: Vec<Line<'_>> = Vec::new();
         line_box.push(Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩"));
-        let mut inner_box = get_inner_box_lines(self.game_board.blocks);
+        let mut inner_box = get_inner_box_lines(self.color_gird);
         line_box.append(&mut inner_box);
         line_box.push(Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩"));
 

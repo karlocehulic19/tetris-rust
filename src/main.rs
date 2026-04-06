@@ -55,28 +55,16 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let placing_block_padding = Line::from("");
-        let upper = Line::from("      🟩").red();
-        let lower = Line::from("🟩🟩🟩🟩").red();
-
-        let mut placing = vec![placing_block_padding, upper, lower];
         let block = Block::default()
             .borders(Borders::ALL)
             .title(Line::from("Tetris").centered());
 
-        let horizontal_border = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
-        // one sqare is exectly two spaces
-        let vertical_border = Line::from("🟩                    🟩".white());
-        let mut vector_box: Vec<Line<'_>> = vec![Line::from(""); 5];
-
-        let mut horizontal_vector = vec![vertical_border; 10];
-        vector_box.push(horizontal_border.clone());
-        vector_box.append(&mut horizontal_vector);
-        vector_box.push(horizontal_border.clone());
+        let mut playing_block_vector = get_next_block();
+        let mut border_vector = get_border_lines();
 
         let mut game_vec: Vec<Line<'_>> = Vec::new();
-        game_vec.append(&mut placing);
-        game_vec.append(&mut vector_box);
+        game_vec.append(&mut playing_block_vector);
+        game_vec.append(&mut border_vector);
 
         let game_ui = Text::from(game_vec);
         Paragraph::new(game_ui)
@@ -84,4 +72,27 @@ impl Widget for &App {
             .block(block)
             .render(area, buf)
     }
+}
+
+fn get_next_block<'a>() -> Vec<Line<'a>> {
+    let placing_block_padding = Line::from("");
+    let upper = Line::from("      🟩").red();
+    let lower = Line::from("🟩🟩🟩🟩").red();
+
+    let placing = vec![placing_block_padding, upper, lower];
+    return placing;
+}
+
+fn get_border_lines<'a>() -> Vec<Line<'a>> {
+    let horizontal_border = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
+    // one sqare is exectly two spaces
+    let vertical_border = Line::from("🟩                    🟩".white());
+    let mut vector_box: Vec<Line<'_>> = vec![Line::from(""); 5];
+
+    let mut horizontal_vector = vec![vertical_border; 10];
+    vector_box.push(horizontal_border.clone());
+    vector_box.append(&mut horizontal_vector);
+    vector_box.push(horizontal_border.clone());
+
+    return vector_box;
 }

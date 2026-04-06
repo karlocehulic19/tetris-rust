@@ -9,6 +9,10 @@ use ratatui::{
     text::{Line, Text},
     widgets::{Block, Borders, Paragraph, Widget},
 };
+
+use crate::game::board;
+mod game;
+
 fn main() -> io::Result<()> {
     ratatui::run(|terminal| App::default().run(terminal))
 }
@@ -83,7 +87,10 @@ fn get_next_block<'a>() -> Vec<Line<'a>> {
 }
 
 fn get_border_lines<'a>() -> Vec<Line<'a>> {
-    let box_strings = get_playing_box_strings();
+    let mut board = board::Board::new();
+    board.place_block();
+
+    let box_strings = get_playing_box_strings(board.to_vec_strings());
     let mut line_box: Vec<Line<'_>> = Vec::new();
     for s in box_strings {
         line_box.push(Line::from(s));
@@ -92,13 +99,19 @@ fn get_border_lines<'a>() -> Vec<Line<'a>> {
     return line_box;
 }
 
-fn get_playing_box_strings() -> Vec<String> {
+fn get_playing_box_strings(inner_box: [String; 10]) -> Vec<String> {
     let top_btm_border = "🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".to_string();
-    let left_right_border = "🟩                    🟩".to_string();
-    let mut middle_area = vec![left_right_border; 10];
     let mut box_strings: Vec<String> = Vec::new();
     box_strings.push(top_btm_border.clone());
-    box_strings.append(&mut middle_area);
+    for i in 0..10 {
+        let mut row = String::new();
+        row.push('🟩');
+        let inner_row = inner_box[i].clone().replace("0", "  ").replace("1", "🟩");
+        row += &inner_row;
+        row.push('🟩');
+        box_strings.push(row);
+    }
+
     box_strings.push(top_btm_border.clone());
     return box_strings;
 }

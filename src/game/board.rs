@@ -5,6 +5,7 @@ use crate::ColorBox;
 use crate::general::{
     colors::Color,
     dimensions::{BOX_HEIGHT, BOX_WIDTH},
+    speed::STARTING_SPEED_MS,
 };
 
 #[derive(Default, Debug)]
@@ -26,7 +27,7 @@ impl Board {
     pub fn start_game(&mut self, mut f: impl FnMut(ColorBox) -> ()) {
         while !self.done {
             self.next_move();
-            let second = Duration::from_millis(250);
+            let second = Duration::from_millis(STARTING_SPEED_MS);
             f(self.blocks);
             sleep(second);
         }

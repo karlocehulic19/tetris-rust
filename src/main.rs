@@ -36,6 +36,8 @@ fn main() -> io::Result<()> {
     ratatui::run(|terminal| App::run_fn(app.clone(), terminal))
 }
 
+const TICK_SPEED_MS: u64 = 16;
+
 #[derive(Debug, Default)]
 struct App {
     exit: bool,
@@ -53,7 +55,7 @@ impl App {
                 terminal.draw(|frame| app.draw(frame));
             }
 
-            let tick = Duration::from_millis(16);
+            let tick = Duration::from_millis(TICK_SPEED_MS);
             if event::poll(tick)? {
                 let event = event::read()?;
                 let mut app = app.lock().unwrap();

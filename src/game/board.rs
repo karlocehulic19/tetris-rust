@@ -1,10 +1,11 @@
+use crate::ColorBox;
 use crate::general::{
     colors::Color,
     dimensions::{BOX_HEIGHT, BOX_WIDTH},
 };
 
 pub struct Board {
-    pub blocks: [[Color; BOX_WIDTH]; BOX_HEIGHT],
+    pub blocks: ColorBox,
 }
 
 impl Board {

@@ -12,10 +12,7 @@ use ratatui::{
 
 use crate::{
     game::board,
-    general::{
-        colors::Color,
-        dimensions::{BOX_HEIGHT, BOX_WIDTH},
-    },
+    general::{colors::Color, dimensions::BOX_HEIGHT, types::ColorBox},
 };
 mod game;
 mod general;
@@ -27,6 +24,7 @@ fn main() -> io::Result<()> {
 #[derive(Debug, Default)]
 struct App {
     exit: bool,
+    color_gird: ColorBox,
 }
 
 impl App {
@@ -106,7 +104,7 @@ fn get_border_lines<'a>() -> Vec<Line<'a>> {
     return line_box;
 }
 
-fn get_inner_box_lines<'a>(inner_box: [[Color; BOX_WIDTH]; BOX_HEIGHT]) -> Vec<Line<'a>> {
+fn get_inner_box_lines<'a>(inner_box: ColorBox) -> Vec<Line<'a>> {
     let mut inner_lines: Vec<Line<'_>> = Vec::new();
 
     for i in 0..BOX_HEIGHT {

@@ -59,12 +59,11 @@ impl Widget for &App {
             .borders(Borders::ALL)
             .title(Line::from("Tetris").centered());
 
-        let mut playing_block_vector = get_next_block();
-        let mut border_vector = get_border_lines();
-
         let mut game_vec: Vec<Line<'_>> = Vec::new();
-        game_vec.append(&mut playing_block_vector);
-        game_vec.append(&mut border_vector);
+        game_vec.append(&mut get_vertical_padding_lines(1));
+        game_vec.append(&mut get_next_block());
+        game_vec.append(&mut get_vertical_padding_lines(3));
+        game_vec.append(&mut get_border_lines());
 
         let game_ui = Text::from(game_vec);
         Paragraph::new(game_ui)
@@ -84,15 +83,27 @@ fn get_next_block<'a>() -> Vec<Line<'a>> {
 }
 
 fn get_border_lines<'a>() -> Vec<Line<'a>> {
-    let horizontal_border = Line::from("🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".white());
-    // one sqare is exectly two spaces
-    let vertical_border = Line::from("🟩                    🟩".white());
-    let mut vector_box: Vec<Line<'_>> = vec![Line::from(""); 5];
+    let box_strings = get_playing_box_strings();
+    let mut line_box: Vec<Line<'_>> = Vec::new();
+    for s in box_strings {
+        line_box.push(Line::from(s));
+    }
 
-    let mut horizontal_vector = vec![vertical_border; 10];
-    vector_box.push(horizontal_border.clone());
-    vector_box.append(&mut horizontal_vector);
-    vector_box.push(horizontal_border.clone());
+    return line_box;
+}
 
-    return vector_box;
+fn get_playing_box_strings() -> Vec<String> {
+    let top_btm_border = "🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩".to_string();
+    let left_right_border = "🟩                    🟩".to_string();
+    let mut middle_area = vec![left_right_border; 10];
+    let mut box_strings: Vec<String> = Vec::new();
+    box_strings.push(top_btm_border.clone());
+    box_strings.append(&mut middle_area);
+    box_strings.push(top_btm_border.clone());
+    return box_strings;
+}
+
+fn get_vertical_padding_lines<'a>(padding_size: usize) -> Vec<Line<'a>> {
+    let padding = vec![Line::from(""); padding_size];
+    return padding;
 }

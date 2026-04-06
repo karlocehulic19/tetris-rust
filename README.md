@@ -1,4 +1,7 @@
-# Rust Battleship
+# Rust Tetris
 
-This is a project designed to be used as a interface for battleship game.
-So users could use this interface, and add on top of it to create other rust application. Example: HTTP server backend for battleship game
+Tetris in terminal implemented with Rust and [ratatui library](https://ratatui.rs/)
+
+## Terminal implementation with ratatui
+
+- Using **Text** widget to manage tetris lines with vectors

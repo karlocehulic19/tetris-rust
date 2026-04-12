@@ -1,4 +1,4 @@
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc::{Receiver, Sender};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -16,30 +16,32 @@ pub struct Board {
     pub blocks: ColorBox,
     pub curr_block: Option<Block>,
     pub done: bool,
+    event_sender: Sender<ColorBox>,
     command_reciever: Receiver<Movement>,
 }
 
 impl Board {
-    pub fn new(c_rx: Receiver<Movement>) -> Self {
+    pub fn new(e_tx: Sender<ColorBox>, c_rx: Receiver<Movement>) -> Self {
         return Self {
             blocks: [[Color::Empty; BOX_WIDTH]; BOX_HEIGHT],
             curr_block: None,
             done: false,
+            event_sender: e_tx,
             command_reciever: c_rx,
         };
     }
 
-    pub fn start_game(&mut self, mut f: impl FnMut(ColorBox) -> ()) {
+    pub fn start_game(&mut self) {
         while !self.done {
             self.next_move();
             let big_interval = Duration::from_millis(STARTING_SPEED_MS);
-            f(self.blocks);
+            self.event_sender.send(self.blocks);
             let interval_count = 50;
             let small_interval = big_interval / interval_count;
             for _ in 0..interval_count {
                 sleep(small_interval);
                 let receive = self.command_reciever.try_recv();
-                f(self.blocks);
+                self.event_sender.send(self.blocks);
                 match receive {
                     Ok(next_command) => {
                         self.move_box(next_command);

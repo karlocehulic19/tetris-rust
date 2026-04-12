@@ -1,10 +1,7 @@
 use std::{
     fmt::Debug,
     io,
-    sync::{
-        Arc, Mutex,
-        mpsc::{self, Sender},
-    },
+    sync::mpsc::{self, Receiver, Sender},
     thread,
     time::Duration,
 };
@@ -33,53 +30,56 @@ mod general;
 
 fn main() -> io::Result<()> {
     let (c_tx, c_rx) = mpsc::channel();
+    let (e_tx, e_rx) = mpsc::channel();
 
-    let mut board = Board::new(c_rx);
-    let app = Arc::new(Mutex::new(App::new(c_tx)));
-    let app_for_game = Arc::clone(&app);
+    let mut board = Board::new(e_tx, c_rx);
+    let app = App::new(c_tx, e_rx);
     thread::spawn(move || {
-        board.start_game(move |new_color_box| {
-            app_for_game.lock().unwrap().update_color_box(new_color_box)
-        })
+        board.start_game();
     });
 
-    ratatui::run(|terminal| App::run_fn(app.clone(), terminal))
+    ratatui::run(|terminal| app.run_fn(terminal))
 }
-
-const TICK_SPEED_MS: u64 = 16;
 
 #[derive(Debug)]
 struct App {
     exit: bool,
     color_gird: ColorBox,
     command_sender: Sender<Movement>,
+    evenet_receiver: Receiver<ColorBox>,
 }
 
 impl App {
-    fn new(c_tx: Sender<Movement>) -> Self {
+    fn new(c_tx: Sender<Movement>, e_rx: Receiver<ColorBox>) -> Self {
         Self {
             exit: false,
             color_gird: [[Color::Empty; BOX_WIDTH]; BOX_HEIGHT],
             command_sender: c_tx,
+            evenet_receiver: e_rx,
         }
     }
 
-    fn run_fn(app: Arc<Mutex<App>>, terminal: &mut DefaultTerminal) -> io::Result<()> {
+    fn run_fn(mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         loop {
-            {
-                let app = app.lock().unwrap();
-                if app.exit {
-                    return Ok(());
-                }
-                terminal.draw(|frame| app.draw(frame));
+            let has_event = event::poll(Duration::from_secs(0))?;
+            if has_event {
+                let event = event::read()?;
+                self.handle_event(event);
             }
 
-            let tick = Duration::from_millis(TICK_SPEED_MS);
-            if event::poll(tick)? {
-                let event = event::read()?;
-                let mut app = app.lock().unwrap();
-                app.handle_event(event);
+            if self.exit {
+                return Ok(());
             }
+
+            let received = self.evenet_receiver.try_recv();
+            match received {
+                Ok(new_board) => {
+                    self.update_color_box(new_board);
+                }
+                Err(_) => {}
+            }
+
+            terminal.draw(|frame| self.draw(frame));
         }
     }
 

@@ -2,9 +2,11 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::ColorBox;
+use crate::general::dimensions;
 use crate::general::{
     colors::Color,
     dimensions::{BOX_HEIGHT, BOX_WIDTH},
+    movements::Movement,
     speed::STARTING_SPEED_MS,
 };
 
@@ -46,5 +48,25 @@ impl Board {
         }
 
         self.curr_block = (r + 1, c);
+    }
+
+    pub fn move_box(&mut self, movement: Movements) {
+        let (row, mut prev_col) = self.curr_block;
+        let mut col = prev_col.clone();
+        match movement {
+            Movements::Left => {
+                col -= 1;
+            }
+            Movements::Right => {
+                col += 1;
+            }
+        }
+
+        // let is_near_border = col < 0 || col == dimensions::BOX_WIDTH;
+        // if (is_near_border) {
+        //     return;
+        // }
+
+        self.curr_block = (row, col);
     }
 }

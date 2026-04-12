@@ -63,6 +63,7 @@ impl Board {
                 }
                 Err(_) => {
                     self.curr_block = Some(Block::new(0, 0));
+                    self.blocks[0][0] = Color::Red;
                 }
             },
         };

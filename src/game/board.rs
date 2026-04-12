@@ -3,7 +3,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::ColorBox;
-use crate::general::dimensions;
+use crate::game::block::Block;
 use crate::general::{
     colors::Color,
     dimensions::{BOX_HEIGHT, BOX_WIDTH},
@@ -14,7 +14,7 @@ use crate::general::{
 #[derive(Debug)]
 pub struct Board {
     pub blocks: ColorBox,
-    pub curr_block: (usize, usize),
+    pub curr_block: Option<Block>,
     pub done: bool,
     command_reciever: Receiver<Movement>,
 }
@@ -23,7 +23,7 @@ impl Board {
     pub fn new(c_rx: Receiver<Movement>) -> Self {
         return Self {
             blocks: [[Color::Empty; BOX_WIDTH]; BOX_HEIGHT],
-            curr_block: (0, 0),
+            curr_block: None,
             done: false,
             command_reciever: c_rx,
         };
@@ -46,18 +46,21 @@ impl Board {
     }
 
     pub fn next_move(&mut self) {
-        let (r, c) = self.curr_block;
-        if r == BOX_HEIGHT || !matches!(self.blocks[r][c], Color::Empty) {
-            self.curr_block = (0, 0);
-            // self.done = true;
-            return;
-        }
-        self.blocks[r][c] = Color::Red;
-        if r > 0 {
-            self.blocks[r - 1][c] = Color::Empty;
-        }
-
-        self.curr_block = (r + 1, c);
+        match self.curr_block {
+            None => {
+                self.curr_block = Some(Block::new(0, 0));
+                self.blocks[0][0] = Color::Red;
+            }
+            Some(ref mut block) => match block.move_down(self.blocks) {
+                Ok((new_row, new_col)) => {
+                    self.clean_box(new_row - 1, new_col);
+                    self.blocks[new_row][new_col] = Color::Red;
+                }
+                Err(_) => {
+                    self.curr_block = Some(Block::new(0, 0));
+                }
+            },
+        };
     }
 
     pub fn move_box(&mut self, movement: Movement) {
@@ -79,5 +82,9 @@ impl Board {
         }
 
         self.curr_block = (row, col);
+    }
+
+    pub fn clean_box(&mut self, row: usize, col: usize) {
+        self.blocks[row][col] = Color::Empty;
     }
 }

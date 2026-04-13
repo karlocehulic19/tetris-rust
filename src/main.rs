@@ -105,6 +105,9 @@ impl App {
             KeyCode::Char('h') => {
                 self.command_sender.send(Movement::Left).unwrap();
             }
+            KeyCode::Char('s') => {
+                self.command_sender.send(Movement::Down).unwrap();
+            }
             _ => {}
         }
     }

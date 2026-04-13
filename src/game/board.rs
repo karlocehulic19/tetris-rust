@@ -52,7 +52,7 @@ impl Board {
         }
     }
 
-    pub fn next_move(&mut self) {
+    fn next_move(&mut self) {
         match self.curr_block {
             None => {
                 self.curr_block = Some(Block::new(0, 0));
@@ -71,7 +71,7 @@ impl Board {
         };
     }
 
-    pub fn move_box(&mut self, movement: Movement) {
+    fn move_box(&mut self, movement: Movement) {
         match self.curr_block {
             Some(ref mut block) => match block.move_horizontal(movement) {
                 Ok((new_r, new_c, old_c)) => {
@@ -84,7 +84,7 @@ impl Board {
         }
     }
 
-    pub fn clean_box(&mut self, row: usize, col: usize) {
+    fn clean_box(&mut self, row: usize, col: usize) {
         self.blocks[row][col] = Color::Empty;
     }
 }

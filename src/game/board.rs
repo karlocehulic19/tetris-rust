@@ -35,13 +35,11 @@ impl Board {
         while !self.done {
             self.next_move();
             let big_interval = Duration::from_millis(STARTING_SPEED_MS);
-            self.event_sender.send(self.blocks);
             let interval_count = 50;
             let small_interval = big_interval / interval_count;
             for _ in 0..interval_count {
                 sleep(small_interval);
                 let receive = self.command_reciever.try_recv();
-                self.event_sender.send(self.blocks);
                 match receive {
                     Ok(next_command) => {
                         self.move_box(next_command);
@@ -56,16 +54,16 @@ impl Board {
         match self.curr_block {
             None => {
                 self.curr_block = Some(Block::new(0, 0));
-                self.blocks[0][0] = Color::Red;
+                self.update_board(vec![(0, 0)], Color::Red);
             }
             Some(ref mut block) => match block.move_down(self.blocks) {
                 Ok((new_row, new_col)) => {
                     self.clean_box(new_row - 1, new_col);
-                    self.blocks[new_row][new_col] = Color::Red;
+                    self.update_board(vec![(new_row, new_col)], Color::Red);
                 }
                 Err(_) => {
                     self.curr_block = Some(Block::new(0, 0));
-                    self.blocks[0][0] = Color::Red;
+                    self.update_board(vec![(0, 0)], Color::Red);
                 }
             },
         };
@@ -76,7 +74,7 @@ impl Board {
             Some(ref mut block) => match block.move_horizontal(movement) {
                 Ok((new_r, new_c, old_c)) => {
                     self.clean_box(new_r, old_c);
-                    self.blocks[new_r][new_c] = Color::Red;
+                    self.update_board(vec![(new_r, new_c)], Color::Red);
                 }
                 Err(_) => {}
             },
@@ -85,6 +83,13 @@ impl Board {
     }
 
     fn clean_box(&mut self, row: usize, col: usize) {
-        self.blocks[row][col] = Color::Empty;
+        self.update_board(vec![(row, col)], Color::Empty);
+    }
+
+    fn update_board(&mut self, positions: Vec<(usize, usize)>, color: Color) {
+        for (row, col) in positions {
+            self.blocks[row][col] = color;
+        }
+        self.event_sender.send(self.blocks);
     }
 }

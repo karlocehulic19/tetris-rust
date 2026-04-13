@@ -71,13 +71,17 @@ impl Board {
 
     fn move_box(&mut self, movement: Movement) {
         match self.curr_block {
-            Some(ref mut block) => match block.move_horizontal(movement) {
-                Ok((new_r, new_c, old_c)) => {
-                    self.clean_box(new_r, old_c);
-                    self.update_board(vec![(new_r, new_c)], Color::Red);
+            Some(ref mut block) => {
+                let (prev_row, prev_col) = block.get_current_possition();
+
+                match block.move_block(movement, self.blocks) {
+                    Ok((new_r, new_c)) => {
+                        self.clean_box(prev_row, prev_col);
+                        self.update_board(vec![(new_r, new_c)], Color::Red);
+                    }
+                    Err(_) => {}
                 }
-                Err(_) => {}
-            },
+            }
             None => {}
         }
     }

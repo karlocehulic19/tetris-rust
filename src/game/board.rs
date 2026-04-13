@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use crate::ColorBox;
 use crate::game::block::Block;
+use crate::general::commands::Command;
 use crate::general::{
     colors::Color,
     dimensions::{BOX_HEIGHT, BOX_WIDTH},
@@ -17,11 +18,11 @@ pub struct Board {
     pub curr_block: Option<Block>,
     pub done: bool,
     event_sender: Sender<ColorBox>,
-    command_reciever: Receiver<Movement>,
+    command_reciever: Receiver<Command>,
 }
 
 impl Board {
-    pub fn new(e_tx: Sender<ColorBox>, c_rx: Receiver<Movement>) -> Self {
+    pub fn new(e_tx: Sender<ColorBox>, c_rx: Receiver<Command>) -> Self {
         return Self {
             blocks: [[Color::Empty; BOX_WIDTH]; BOX_HEIGHT],
             curr_block: None,
@@ -42,10 +43,21 @@ impl Board {
                 let receive = self.command_reciever.try_recv();
                 match receive {
                     Ok(next_command) => {
-                        self.move_box(next_command);
+                        self.handle_command(next_command);
                     }
                     Err(_) => {}
                 }
+            }
+        }
+    }
+
+    fn handle_command(&mut self, command: Command) {
+        match command {
+            Command::EndGame => {
+                println!("Game should end");
+            }
+            Command::Move(movement) => {
+                self.move_box(movement);
             }
         }
     }

@@ -20,6 +20,7 @@ use crate::{
     game::board::Board,
     general::{
         colors::Color,
+        commands::Command,
         dimensions::{BOX_HEIGHT, BOX_WIDTH},
         movements::Movement,
         types::ColorBox,
@@ -45,12 +46,12 @@ fn main() -> io::Result<()> {
 struct App {
     exit: bool,
     color_gird: ColorBox,
-    command_sender: Sender<Movement>,
+    command_sender: Sender<Command>,
     evenet_receiver: Receiver<ColorBox>,
 }
 
 impl App {
-    fn new(c_tx: Sender<Movement>, e_rx: Receiver<ColorBox>) -> Self {
+    fn new(c_tx: Sender<Command>, e_rx: Receiver<ColorBox>) -> Self {
         Self {
             exit: false,
             color_gird: [[Color::Empty; BOX_WIDTH]; BOX_HEIGHT],
@@ -100,13 +101,19 @@ impl App {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('l') => {
-                self.command_sender.send(Movement::Right).unwrap();
+                self.command_sender
+                    .send(Command::Move(Movement::Right))
+                    .unwrap();
             }
             KeyCode::Char('h') => {
-                self.command_sender.send(Movement::Left).unwrap();
+                self.command_sender
+                    .send(Command::Move(Movement::Left))
+                    .unwrap();
             }
             KeyCode::Char('s') => {
-                self.command_sender.send(Movement::Down).unwrap();
+                self.command_sender
+                    .send(Command::Move(Movement::Down))
+                    .unwrap();
             }
             _ => {}
         }

@@ -61,14 +61,14 @@ impl App {
 
     fn run_fn(mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         loop {
+            if self.exit {
+                return Ok(());
+            }
+
             let has_event = event::poll(Duration::from_secs(0))?;
             if has_event {
                 let event = event::read()?;
                 self.handle_event(event);
-            }
-
-            if self.exit {
-                return Ok(());
             }
 
             let received = self.evenet_receiver.try_recv();

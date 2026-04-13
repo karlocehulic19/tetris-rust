@@ -29,17 +29,20 @@ use crate::{
 mod game;
 mod general;
 
-fn main() -> io::Result<()> {
+fn main() -> std::io::Result<()> {
     let (c_tx, c_rx) = mpsc::channel();
     let (e_tx, e_rx) = mpsc::channel();
 
     let mut board = Board::new(e_tx, c_rx);
     let app = App::new(c_tx, e_rx);
-    thread::spawn(move || {
+    let game_thred = thread::spawn(move || {
         board.start_game();
     });
 
-    ratatui::run(|terminal| app.run_fn(terminal))
+    let io_result = ratatui::run(|terminal| app.run_fn(terminal));
+    game_thred.join();
+
+    return io_result;
 }
 
 #[derive(Debug)]
@@ -120,6 +123,7 @@ impl App {
     }
 
     fn exit(&mut self) {
+        self.command_sender.send(Command::EndGame);
         self.exit = true;
     }
 

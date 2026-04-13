@@ -54,7 +54,7 @@ impl Board {
     fn handle_command(&mut self, command: Command) {
         match command {
             Command::EndGame => {
-                println!("Game should end");
+                self.done = true;
             }
             Command::Move(movement) => {
                 self.move_box(movement);

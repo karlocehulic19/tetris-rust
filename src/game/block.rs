@@ -9,17 +9,35 @@ use crate::general::{
 pub enum BlockError {
     Grounded,
     OutOfBounds,
+    CellOccupied,
 }
+
+type CellPosition = (usize, usize);
+type BlockPosition = (CellPosition, Vec<CellPosition>);
 
 #[derive(Debug)]
 pub struct Block {
-    row: usize,
-    col: usize,
+    position: BlockPosition,
 }
 
 impl Block {
-    pub fn new(row: usize, col: usize) -> Self {
-        Self { row: row, col: col }
+    pub fn new(board: ColorBox) -> Result<Self, BlockError> {
+        // Hardcoded for L block for now..., will discover better approaches later...
+        let main_cell_row: usize = 0;
+        let main_cell_col: usize = 3;
+        let offset_cells: Vec<(usize, usize)> = vec![(1, 0), (1, 1), (1, 2)];
+        Block::check_board(
+            ((main_cell_row, main_cell_col), offset_cells.clone()),
+            board,
+        );
+
+        Ok(Self {
+            position: ((main_cell_row, main_cell_col), offset_cells),
+        })
+    }
+
+    pub fn check_board(position: BlockPosition, board: ColorBox) -> Result<(), BlockError> {
+        return Ok(());
     }
 
     pub fn move_block(
@@ -29,39 +47,53 @@ impl Block {
     ) -> Result<(usize, usize), BlockError> {
         match movement {
             Movement::Left => {
-                if self.col == 0 {
-                    return Err(BlockError::OutOfBounds);
-                }
-                self.col -= 1;
-                return Ok((self.row, self.col));
+                // if self.col == 0 {
+                //     return Err(BlockError::OutOfBounds);
+                // }
+                // self.col -= 1;
+                // return Ok((self.row, self.col));
+                return Ok((0, 0));
             }
             Movement::Right => {
-                if self.col == BOX_WIDTH - 1 {
-                    return Err(BlockError::OutOfBounds);
-                };
-                self.col += 1;
-                return Ok((self.row, self.col));
+                // if self.col == BOX_WIDTH - 1 {
+                //     return Err(BlockError::OutOfBounds);
+                // };
+                // self.col += 1;
+                // return Ok((self.row, self.col));
+                return Ok((0, 0));
             }
-            Movement::Down => self.move_down(board),
+            Movement::Down => Ok((0, 0)),
         }
     }
 
-    pub fn move_down(&mut self, board: ColorBox) -> Result<(usize, usize), BlockError> {
+    pub fn move_down(&mut self, board: ColorBox) -> Result<BlockPosition, BlockError> {
         if self.is_grounded(board) {
             return Err(BlockError::Grounded);
         }
 
-        self.row += 1;
-        return Ok((self.row, self.col));
+        self.position.0.0 += 1;
+
+        return Ok(self.position.clone());
     }
 
     // can either do this, and then have to call move down, or try to move down in the first place
     fn is_grounded(&self, board: ColorBox) -> bool {
-        return self.row == BOX_HEIGHT - 1
-            || !matches!(board[self.row + 1][self.col], Color::Empty);
+        return false;
+        // return self.row == BOX_HEIGHT - 1
+        //     || !matches!(board[self.row + 1][self.col], Color::Empty);
+    }
+
+    pub fn get_block_cells(&self) -> Vec<(usize, usize)> {
+        let ((row, col), offset) = self.position.clone();
+        let mut block_cells = vec![(row, col)];
+        for (o_row, o_col) in offset {
+            block_cells.push((row + o_row, col + o_col));
+        }
+
+        return block_cells;
     }
 
     pub fn get_current_possition(&self) -> (usize, usize) {
-        return (self.row, self.col);
+        return (self.position.0.0, self.position.0.1);
     }
 }

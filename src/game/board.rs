@@ -63,17 +63,30 @@ impl Board {
 
     fn next_move(&mut self) {
         match self.curr_block {
-            None => {
-                self.curr_block = Some(Block::new(0, 0));
-                self.update_board(vec![(0, 0)], Color::Red);
-            }
-            Some(ref mut block) => match block.move_down(self.blocks) {
-                Ok((new_row, new_col)) => {
-                    self.clean_box(new_row - 1, new_col);
-                    self.update_board(vec![(new_row, new_col)], Color::Red);
+            None => match Block::new(self.blocks) {
+                Ok(block) => {
+                    self.update_board(block.get_block_cells(), Color::Red);
+                    self.curr_block = Some(block);
                 }
                 Err(_) => {
-                    self.curr_block = Some(Block::new(0, 0));
+                    self.done = true;
+                    return;
+                }
+            },
+            Some(ref mut block) => match block.move_down(self.blocks) {
+                Ok((new_row, new_col)) => {
+                    // self.clean_box(new_row - 1, new_col);
+                    // self.update_board(vec![(new_row, new_col)], Color::Red);
+                }
+                Err(_) => {
+                    match Block::new(self.blocks) {
+                        Ok(block) => {
+                            self.curr_block = Some(block);
+                        }
+                        Err(_) => {
+                            self.done = true;
+                        }
+                    }
                     self.update_board(vec![(0, 0)], Color::Red);
                 }
             },

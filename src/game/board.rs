@@ -7,9 +7,8 @@ use crate::game::block::Block;
 use crate::general::commands::Command;
 use crate::general::{
     colors::Color,
-    dimensions::{BOX_HEIGHT, BOX_WIDTH},
+    constants::{BOX_HEIGHT, BOX_WIDTH, STARTING_SPEED_MS},
     movements::Movement,
-    speed::STARTING_SPEED_MS,
 };
 
 #[derive(Debug)]

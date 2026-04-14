@@ -1,6 +1,6 @@
 use crate::general::{
     colors::Color,
-    dimensions::{BOX_HEIGHT, BOX_WIDTH},
+    constants::{BOX_HEIGHT, BOX_WIDTH},
     movements::Movement,
     types::ColorBox,
 };

@@ -12,7 +12,7 @@ pub enum BlockError {
     CellOccupied,
 }
 
-type CellPosition = (usize, usize);
+pub type CellPosition = (usize, usize);
 type BlockPosition = (CellPosition, Vec<CellPosition>);
 
 #[derive(Debug)]
@@ -66,14 +66,14 @@ impl Block {
         }
     }
 
-    pub fn move_down(&mut self, board: ColorBox) -> Result<BlockPosition, BlockError> {
+    pub fn move_down(&mut self, board: ColorBox) -> Result<Vec<CellPosition>, BlockError> {
         if self.is_grounded(board) {
             return Err(BlockError::Grounded);
         }
 
         self.position.0.0 += 1;
 
-        return Ok(self.position.clone());
+        return Ok(self.get_block_cells());
     }
 
     // can either do this, and then have to call move down, or try to move down in the first place
@@ -83,7 +83,7 @@ impl Block {
         //     || !matches!(board[self.row + 1][self.col], Color::Empty);
     }
 
-    pub fn get_block_cells(&self) -> Vec<(usize, usize)> {
+    pub fn get_block_cells(&self) -> Vec<(CellPosition)> {
         let ((row, col), offset) = self.position.clone();
         let mut block_cells = vec![(row, col)];
         for (o_row, o_col) in offset {

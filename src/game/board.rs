@@ -3,7 +3,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::ColorBox;
-use crate::game::block::Block;
+use crate::game::block::{Block, CellPosition};
 use crate::general::commands::Command;
 use crate::general::{
     colors::Color,
@@ -61,36 +61,39 @@ impl Board {
         }
     }
 
+    // what we are doing?
     fn next_move(&mut self) {
-        match self.curr_block {
-            None => match Block::new(self.blocks) {
-                Ok(block) => {
-                    self.update_board(block.get_block_cells(), Color::Red);
-                    self.curr_block = Some(block);
-                }
-                Err(_) => {
-                    self.done = true;
-                    return;
-                }
-            },
-            Some(ref mut block) => match block.move_down(self.blocks) {
-                Ok((new_row, new_col)) => {
-                    // self.clean_box(new_row - 1, new_col);
-                    // self.update_board(vec![(new_row, new_col)], Color::Red);
-                }
-                Err(_) => {
-                    match Block::new(self.blocks) {
-                        Ok(block) => {
-                            self.curr_block = Some(block);
-                        }
-                        Err(_) => {
-                            self.done = true;
-                        }
+        let (prevBlockCords, nextBlockCords, newBlock): (
+            Option<Vec<CellPosition>>,
+            Vec<CellPosition>,
+            Option<Block>,
+        ) = match self.curr_block {
+            None => {
+                let block = Block::new(self.blocks).unwrap();
+                (None, block.get_block_cells(), Some(block))
+            }
+            Some(ref mut block) => {
+                let tempPrevBlockCords = block.get_block_cells();
+                let (prevBlockCords, currBlockCords, newBlock) = match block.move_down(self.blocks)
+                {
+                    Ok(nextBlockCords) => (Some(tempPrevBlockCords), block.get_block_cells(), None),
+                    Err(_) => {
+                        // TODO: Handle unwrap gracefully
+                        let newBlock = Block::new(self.blocks).unwrap();
+                        (None, newBlock.get_block_cells(), Some(newBlock))
                     }
-                    self.update_board(vec![(0, 0)], Color::Red);
-                }
-            },
+                };
+                (prevBlockCords, currBlockCords, newBlock)
+            }
         };
+
+        if newBlock.is_some() {
+            self.curr_block = newBlock;
+        }
+        if prevBlockCords.is_some() {
+            self.clean_box(prevBlockCords.unwrap());
+        }
+        self.update_board(nextBlockCords, Color::Red);
     }
 
     fn move_box(&mut self, movement: Movement) {
@@ -100,7 +103,7 @@ impl Board {
 
                 match block.move_block(movement, self.blocks) {
                     Ok((new_r, new_c)) => {
-                        self.clean_box(prev_row, prev_col);
+                        // self.clean_box(prev_row, prev_col);
                         self.update_board(vec![(new_r, new_c)], Color::Red);
                     }
                     Err(_) => {}
@@ -110,8 +113,9 @@ impl Board {
         }
     }
 
-    fn clean_box(&mut self, row: usize, col: usize) {
-        self.update_board(vec![(row, col)], Color::Empty);
+    fn clean_box(&mut self, cells: Vec<(usize, usize)>) -> &mut Board {
+        self.update_board(cells, Color::Empty);
+        return self;
     }
 
     fn update_board(&mut self, positions: Vec<(usize, usize)>, color: Color) {

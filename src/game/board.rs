@@ -61,39 +61,32 @@ impl Board {
         }
     }
 
-    // what we are doing?
     fn next_move(&mut self) {
-        let (prevBlockCords, nextBlockCords, newBlock): (
-            Option<Vec<CellPosition>>,
-            Vec<CellPosition>,
-            Option<Block>,
-        ) = match self.curr_block {
+        // TODO: handle unwrap properly (This will be the error that causes game to end)
+        let should_create_new_block = self.curr_block.is_none()
+            || self
+                .curr_block
+                .as_mut()
+                .unwrap()
+                .move_down(self.blocks)
+                .is_err();
+        if should_create_new_block {
+            self.curr_block = Some(Block::new(self.blocks).unwrap());
+        }
+
+        let (prev_cells, next_cells) = match self.curr_block.as_ref() {
+            Some(block) => (
+                block.get_prev_block_cells().clone(),
+                block.get_block_cells(),
+            ),
             None => {
-                let block = Block::new(self.blocks).unwrap();
-                (None, block.get_block_cells(), Some(block))
-            }
-            Some(ref mut block) => {
-                let tempPrevBlockCords = block.get_block_cells();
-                let (prevBlockCords, currBlockCords, newBlock) = match block.move_down(self.blocks)
-                {
-                    Ok(nextBlockCords) => (Some(tempPrevBlockCords), block.get_block_cells(), None),
-                    Err(_) => {
-                        // TODO: Handle unwrap gracefully
-                        let newBlock = Block::new(self.blocks).unwrap();
-                        (None, newBlock.get_block_cells(), Some(newBlock))
-                    }
-                };
-                (prevBlockCords, currBlockCords, newBlock)
+                return;
             }
         };
-
-        if newBlock.is_some() {
-            self.curr_block = newBlock;
+        if let Some(ref prev_cells) = prev_cells {
+            self.clean_box(prev_cells);
         }
-        if prevBlockCords.is_some() {
-            self.clean_box(prevBlockCords.unwrap());
-        }
-        self.update_board(nextBlockCords, Color::Red);
+        self.update_board(&next_cells, Color::Red);
     }
 
     fn move_box(&mut self, movement: Movement) {
@@ -104,7 +97,7 @@ impl Board {
                 match block.move_block(movement, self.blocks) {
                     Ok((new_r, new_c)) => {
                         // self.clean_box(prev_row, prev_col);
-                        self.update_board(vec![(new_r, new_c)], Color::Red);
+                        self.update_board(&vec![(new_r, new_c)], Color::Red);
                     }
                     Err(_) => {}
                 }
@@ -113,14 +106,14 @@ impl Board {
         }
     }
 
-    fn clean_box(&mut self, cells: Vec<(usize, usize)>) -> &mut Board {
+    fn clean_box(&mut self, cells: &Vec<(usize, usize)>) -> &mut Board {
         self.update_board(cells, Color::Empty);
         return self;
     }
 
-    fn update_board(&mut self, positions: Vec<(usize, usize)>, color: Color) {
+    fn update_board(&mut self, positions: &Vec<(usize, usize)>, color: Color) {
         for (row, col) in positions {
-            self.blocks[row][col] = color;
+            self.blocks[row.clone()][col.clone()] = color;
         }
         self.event_sender.send(self.blocks);
     }

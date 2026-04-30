@@ -99,10 +99,6 @@ impl Block {
         return Block::block_pos_to_cell_pos(self.position.clone());
     }
 
-    pub fn get_current_possition(&self) -> (usize, usize) {
-        return (self.position.0.0, self.position.0.1);
-    }
-
     fn block_pos_to_cell_pos(position: BlockPosition) -> Vec<CellPosition> {
         let ((row, col), offset) = position;
         let mut block_cells = vec![(row, col)];

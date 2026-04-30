@@ -92,8 +92,6 @@ impl Board {
     fn move_box(&mut self, movement: Movement) {
         match self.curr_block {
             Some(ref mut block) => {
-                let (prev_row, prev_col) = block.get_current_possition();
-
                 match block.move_block(movement, self.blocks) {
                     Ok((new_r, new_c)) => {
                         // self.clean_box(prev_row, prev_col);

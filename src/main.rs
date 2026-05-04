@@ -103,12 +103,12 @@ impl App {
     fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            KeyCode::Char('l') => {
+            KeyCode::Char('d') => {
                 self.command_sender
                     .send(Command::Move(Movement::Right))
                     .unwrap();
             }
-            KeyCode::Char('h') => {
+            KeyCode::Char('a') => {
                 self.command_sender
                     .send(Command::Move(Movement::Left))
                     .unwrap();

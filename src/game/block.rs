@@ -101,12 +101,11 @@ impl Block {
     }
 
     pub fn get_prev_block_cells(&self) -> Option<Vec<CellPosition>> {
-        let prev_clone = self.prev_position.clone();
-
-        if prev_clone.is_none() {
-            return None;
+        if let Some(ref prev_pos) = self.prev_position {
+            return Some(Block::block_pos_to_cell_pos(prev_pos));
         }
-        return Some(Block::block_pos_to_cell_pos(prev_clone.unwrap()));
+
+        return None;
     }
 
     pub fn get_block_cells(&self) -> Vec<CellPosition> {

@@ -93,10 +93,8 @@ impl Board {
         match self.curr_block {
             Some(ref mut block) => match block.move_block(movement, self.blocks) {
                 Ok(new_pos) => {
-                    if let Some(ref block) = self.curr_block {
-                        if let Some(prev_cells) = block.get_prev_block_cells() {
-                            self.clean_box(&prev_cells);
-                        }
+                    if let Some(prev_cells) = block.get_prev_block_cells() {
+                        self.clean_box(&prev_cells);
                     }
                     self.update_board(&new_pos, Color::Red);
                 }

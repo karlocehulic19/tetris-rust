@@ -81,9 +81,22 @@ impl Block {
 
     // can either do this, and then have to call move down, or try to move down in the first place
     fn is_grounded(&self, board: ColorBox) -> bool {
+        let cells = self.get_block_cells();
+
+        for (row, col) in &cells {
+            let is_last_row = *row == BOX_HEIGHT - 1;
+            if is_last_row {
+                return true;
+            }
+
+            let is_bottom_cell = !cells.contains(&(row.clone() + 1, col.clone()));
+            let is_bellow_colored = !matches!(board[row.clone() + 1][col.clone()], Color::Empty);
+            if is_bottom_cell && is_bellow_colored {
+                return true;
+            }
+        }
+
         return false;
-        // return self.row == BOX_HEIGHT - 1
-        //     || !matches!(board[self.row + 1][self.col], Color::Empty);
     }
 
     pub fn get_prev_block_cells(&self) -> Option<Vec<CellPosition>> {

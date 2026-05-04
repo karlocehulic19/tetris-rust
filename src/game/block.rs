@@ -38,6 +38,7 @@ impl Block {
         })
     }
 
+    // TODO: handle game end criterie
     pub fn check_board(position: BlockPosition, board: ColorBox) -> Result<(), BlockError> {
         return Ok(());
     }

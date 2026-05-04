@@ -109,14 +109,14 @@ impl Block {
     }
 
     pub fn get_block_cells(&self) -> Vec<CellPosition> {
-        return Block::block_pos_to_cell_pos(self.position.clone());
+        return Block::block_pos_to_cell_pos(&self.position);
     }
 
-    fn block_pos_to_cell_pos(position: BlockPosition) -> Vec<CellPosition> {
+    fn block_pos_to_cell_pos(position: &BlockPosition) -> Vec<CellPosition> {
         let ((row, col), offset) = position;
-        let mut block_cells = vec![(row, col)];
+        let mut block_cells: Vec<CellPosition> = vec![(row.clone(), col.clone())];
         for (o_row, o_col) in offset {
-            block_cells.push((row + o_row, col + o_col));
+            block_cells.push((row.clone() + o_row.clone(), col.clone() + o_col.clone()));
         }
 
         return block_cells;

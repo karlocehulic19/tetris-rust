@@ -91,15 +91,17 @@ impl Board {
 
     fn move_box(&mut self, movement: Movement) {
         match self.curr_block {
-            Some(ref mut block) => {
-                match block.move_block(movement, self.blocks) {
-                    Ok((new_r, new_c)) => {
-                        // self.clean_box(prev_row, prev_col);
-                        self.update_board(&vec![(new_r, new_c)], Color::Red);
+            Some(ref mut block) => match block.move_block(movement, self.blocks) {
+                Ok(new_pos) => {
+                    if let Some(ref block) = self.curr_block {
+                        if let Some(prev_cells) = block.get_prev_block_cells() {
+                            self.clean_box(&prev_cells);
+                        }
                     }
-                    Err(_) => {}
+                    self.update_board(&new_pos, Color::Red);
                 }
-            }
+                Err(_) => {}
+            },
             None => {}
         }
     }

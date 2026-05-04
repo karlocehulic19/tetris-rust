@@ -47,26 +47,38 @@ impl Block {
         &mut self,
         movement: Movement,
         board: ColorBox,
-    ) -> Result<(usize, usize), BlockError> {
+    ) -> Result<Vec<(usize, usize)>, BlockError> {
+        for (_, col) in self.get_block_cells() {
+            match movement {
+                Movement::Left => {
+                    if col == 0 {
+                        return Err(BlockError::OutOfBounds);
+                    }
+                }
+                Movement::Right => {
+                    if col == BOX_WIDTH - 1 {
+                        return Err(BlockError::OutOfBounds);
+                    };
+                }
+                Movement::Down => {
+                    if self.is_grounded(board) {
+                        return Err(BlockError::Grounded);
+                    }
+                }
+            }
+        }
+
+        self.prev_position = Some(self.position.clone());
         match movement {
             Movement::Left => {
-                // if self.col == 0 {
-                //     return Err(BlockError::OutOfBounds);
-                // }
-                // self.col -= 1;
-                // return Ok((self.row, self.col));
-                return Ok((0, 0));
+                self.position.0.1 -= 1;
             }
-            Movement::Right => {
-                // if self.col == BOX_WIDTH - 1 {
-                //     return Err(BlockError::OutOfBounds);
-                // };
-                // self.col += 1;
-                // return Ok((self.row, self.col));
-                return Ok((0, 0));
+            Movement::Right => self.position.0.1 += 1,
+            Movement::Down => {
+                self.position.0.0 += 1;
             }
-            Movement::Down => Ok((0, 0)),
         }
+        return Ok(Block::block_pos_to_cell_pos(&self.position));
     }
 
     pub fn move_down(&mut self, board: ColorBox) -> Result<Vec<CellPosition>, BlockError> {

@@ -68,7 +68,7 @@ impl Board {
                 .curr_block
                 .as_mut()
                 .unwrap()
-                .move_down(self.blocks)
+                .move_block(Movement::Down, self.blocks)
                 .is_err();
         if should_create_new_block {
             self.curr_block = Some(Block::new(self.blocks).unwrap());

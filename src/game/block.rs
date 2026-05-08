@@ -48,6 +48,10 @@ impl Block {
         movement: Movement,
         board: ColorBox,
     ) -> Result<Vec<(usize, usize)>, BlockError> {
+        if self.is_grounded(board) {
+            return Err(BlockError::Grounded);
+        };
+
         for (_, col) in self.get_block_cells() {
             match movement {
                 Movement::Left => {
@@ -60,11 +64,7 @@ impl Block {
                         return Err(BlockError::OutOfBounds);
                     };
                 }
-                Movement::Down => {
-                    if self.is_grounded(board) {
-                        return Err(BlockError::Grounded);
-                    }
-                }
+                Movement::Down => {}
             }
         }
 

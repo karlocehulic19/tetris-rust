@@ -21,7 +21,7 @@ use crate::{
     general::{
         colors::Color,
         commands::Command,
-        constants::{BOX_HEIGHT, BOX_WIDTH},
+        constants::{BOX_HEIGHT, BOX_WIDTH, FPS},
         movements::Movement,
         types::ColorBox,
     },
@@ -69,7 +69,7 @@ impl App {
                 return Ok(());
             }
 
-            let has_event = event::poll(Duration::from_secs(0))?;
+            let has_event = event::poll(Duration::from_millis(1000 / FPS))?;
             if has_event {
                 let event = event::read()?;
                 self.handle_event(event);

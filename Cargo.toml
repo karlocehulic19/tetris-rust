@@ -1,5 +1,5 @@
 [package]
-name = "battleship-rust"
+name = "tetris-rust"
 version = "0.1.0"
 edition = "2024"
 

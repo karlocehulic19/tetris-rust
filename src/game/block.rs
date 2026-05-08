@@ -81,17 +81,6 @@ impl Block {
         return Ok(Block::block_pos_to_cell_pos(&self.position));
     }
 
-    pub fn move_down(&mut self, board: ColorBox) -> Result<Vec<CellPosition>, BlockError> {
-        if self.is_grounded(board) {
-            return Err(BlockError::Grounded);
-        }
-
-        self.prev_position = Some(self.position.clone());
-        self.position.0.0 += 1;
-
-        return Ok(self.get_block_cells());
-    }
-
     // can either do this, and then have to call move down, or try to move down in the first place
     fn is_grounded(&self, board: ColorBox) -> bool {
         let cells = self.get_block_cells();

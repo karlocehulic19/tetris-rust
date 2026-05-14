@@ -1,5 +1,5 @@
 use crate::{
-    game::position::{BlockRelativePosition, CellPosition, CellPositions, PositionError},
+    game::position::{BlockRelativePosition, CellPositions, PositionError},
     general::{colors::Color, constants::BOX_HEIGHT, movements::Movement, types::ColorBox},
 };
 
@@ -7,6 +7,7 @@ use crate::{
 pub enum BlockError {
     Grounded,
     OutOfBounds,
+    Ocupied,
 }
 
 impl From<PositionError> for BlockError {
@@ -30,7 +31,7 @@ impl Block {
         // TODO:  handle position checking correctly
         let position =
             BlockRelativePosition::new((main_cell_row, main_cell_col), offset_cells).unwrap();
-        Block::check_board(&position, board);
+        Block::check_board(position.clone().into(), None, board)?;
 
         Ok(Self {
             position,
@@ -38,11 +39,23 @@ impl Block {
         })
     }
 
-    // TODO: handle game end criterie
     pub fn check_board(
-        position: &BlockRelativePosition,
+        cell_pos: CellPositions,
+        prev_cell_pos_o: Option<CellPositions>,
         board: ColorBox,
     ) -> Result<(), BlockError> {
+        for (cell_row, cell_col) in cell_pos {
+            if let Some(prev_cell_pos) = prev_cell_pos_o.clone() {
+                if prev_cell_pos.contains(&(cell_row, cell_col)) {
+                    continue;
+                }
+            }
+
+            if !matches!(board[cell_row][cell_col], Color::Empty) {
+                return Err(BlockError::Ocupied);
+            }
+        }
+
         return Ok(());
     }
 
@@ -56,7 +69,11 @@ impl Block {
         };
 
         let new_position = self.position.move_block(&movement)?;
-        Self::check_board(&new_position, board)?;
+        Self::check_board(
+            new_position.clone().into(),
+            Some(self.position.clone().into()),
+            board,
+        )?;
 
         self.prev_position = Some(self.position.clone());
         self.position = new_position;

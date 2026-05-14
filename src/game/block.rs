@@ -1,24 +1,24 @@
-use crate::general::{
-    colors::Color,
-    constants::{BOX_HEIGHT, BOX_WIDTH},
-    movements::Movement,
-    types::ColorBox,
+use crate::{
+    game::position::{BlockRelativePosition, CellPosition, CellPositions, PositionError},
+    general::{colors::Color, constants::BOX_HEIGHT, movements::Movement, types::ColorBox},
 };
 
 #[derive(Debug)]
 pub enum BlockError {
     Grounded,
     OutOfBounds,
-    CellOccupied,
 }
 
-pub type CellPosition = (usize, usize);
-type BlockPosition = (CellPosition, Vec<CellPosition>);
+impl From<PositionError> for BlockError {
+    fn from(_: PositionError) -> Self {
+        BlockError::OutOfBounds
+    }
+}
 
 #[derive(Debug)]
 pub struct Block {
-    position: BlockPosition,
-    prev_position: Option<BlockPosition>,
+    position: BlockRelativePosition,
+    prev_position: Option<BlockRelativePosition>,
 }
 
 impl Block {
@@ -26,20 +26,23 @@ impl Block {
         // Hardcoded for L block for now..., will discover better approaches later...
         let main_cell_row: usize = 0;
         let main_cell_col: usize = 3;
-        let offset_cells: Vec<(usize, usize)> = vec![(1, 0), (1, 1), (1, 2)];
-        Block::check_board(
-            ((main_cell_row, main_cell_col), offset_cells.clone()),
-            board,
-        );
+        let offset_cells: Vec<(isize, isize)> = vec![(1, 0), (1, 1), (1, 2)];
+        // TODO:  handle position checking correctly
+        let position =
+            BlockRelativePosition::new((main_cell_row, main_cell_col), offset_cells).unwrap();
+        Block::check_board(&position, board);
 
         Ok(Self {
-            position: ((main_cell_row, main_cell_col), offset_cells),
+            position,
             prev_position: None,
         })
     }
 
     // TODO: handle game end criterie
-    pub fn check_board(position: BlockPosition, board: ColorBox) -> Result<(), BlockError> {
+    pub fn check_board(
+        position: &BlockRelativePosition,
+        board: ColorBox,
+    ) -> Result<(), BlockError> {
         return Ok(());
     }
 
@@ -47,43 +50,23 @@ impl Block {
         &mut self,
         movement: Movement,
         board: ColorBox,
-    ) -> Result<Vec<(usize, usize)>, BlockError> {
+    ) -> Result<CellPositions, BlockError> {
         if self.is_grounded(board) {
             return Err(BlockError::Grounded);
         };
 
-        for (_, col) in self.get_block_cells() {
-            match movement {
-                Movement::Left => {
-                    if col == 0 {
-                        return Err(BlockError::OutOfBounds);
-                    }
-                }
-                Movement::Right => {
-                    if col == BOX_WIDTH - 1 {
-                        return Err(BlockError::OutOfBounds);
-                    };
-                }
-                Movement::Down => {}
-            }
-        }
+        let new_position = self.position.move_block(&movement)?;
+        Self::check_board(&new_position, board)?;
 
         self.prev_position = Some(self.position.clone());
-        match movement {
-            Movement::Left => {
-                self.position.0.1 -= 1;
-            }
-            Movement::Right => self.position.0.1 += 1,
-            Movement::Down => {
-                self.position.0.0 += 1;
-            }
-        }
-        return Ok(Block::block_pos_to_cell_pos(&self.position));
+        self.position = new_position;
+
+        return Ok(self.position.clone().into());
     }
 
     // can either do this, and then have to call move down, or try to move down in the first place
     fn is_grounded(&self, board: ColorBox) -> bool {
-        let cells = self.get_block_cells();
+        let cells: CellPositions = self.position.clone().into();
 
         for (row, col) in &cells {
             let is_last_row = *row == BOX_HEIGHT - 1;
@@ -101,25 +84,15 @@ impl Block {
         return false;
     }
 
-    pub fn get_prev_block_cells(&self) -> Option<Vec<CellPosition>> {
+    pub fn get_prev_block_cells(&self) -> Option<CellPositions> {
         if let Some(ref prev_pos) = self.prev_position {
-            return Some(Block::block_pos_to_cell_pos(prev_pos));
+            return Some(prev_pos.clone().into());
         }
 
         return None;
     }
 
-    pub fn get_block_cells(&self) -> Vec<CellPosition> {
-        return Block::block_pos_to_cell_pos(&self.position);
-    }
-
-    fn block_pos_to_cell_pos(position: &BlockPosition) -> Vec<CellPosition> {
-        let ((row, col), offset) = position;
-        let mut block_cells: Vec<CellPosition> = vec![(row.clone(), col.clone())];
-        for (o_row, o_col) in offset {
-            block_cells.push((row.clone() + o_row.clone(), col.clone() + o_col.clone()));
-        }
-
-        return block_cells;
+    pub fn get_block_cells(&self) -> CellPositions {
+        return self.position.clone().into();
     }
 }

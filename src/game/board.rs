@@ -3,7 +3,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use crate::ColorBox;
-use crate::game::block::{Block, CellPosition};
+use crate::game::block::Block;
 use crate::general::commands::Command;
 use crate::general::{
     colors::Color,
